@@ -9,7 +9,7 @@ const { FileService } = require('./build/storage/file_pb.cjs');
 // Main server function
 async function startServer() {
 
-// Connect-RPC service implementation
+// ConnectRPC service implementation
 const fileServiceImpl = {
   async *compressAndDownload(request) {
     const { userId, paths, chunkSizeByte } = request;
@@ -48,17 +48,17 @@ const fileServiceImpl = {
   }
 };
 
-// Create Connect-RPC routes function
+// Create ConnectRPC routes function
 const routes = (router) => {
   router.service(FileService, fileServiceImpl);
 };
 
-// Create Fastify server with Connect-RPC plugin
+// Create Fastify server with ConnectRPC plugin
 const server = fastify({
   http2: true,
 });
 
-// Register Connect-RPC plugin
+// Register ConnectRPC plugin
 await server.register(fastifyConnectPlugin, {
   routes,
 });
@@ -84,10 +84,10 @@ const HOST = process.env.HOST || '0.0.0.0';
 // Start server
 try {
   await server.listen({ port: PORT, host: HOST });
-  console.log(`🚀 Connect-RPC server listening on http://${HOST}:${PORT}`);
-  console.log(`📊 Health check available at: http://${HOST}:${PORT}/health`);
-  console.log(`🔧 FileService.CompressAndDownload available for streaming`);
-  console.log(`💾 Server memory monitoring enabled`);
+  console.log(`ConnectRPC server listening on http://${HOST}:${PORT}`);
+  console.log(`Health check available at: http://${HOST}:${PORT}/health`);
+  console.log(`FileService.CompressAndDownload available for streaming`);
+  console.log(`Server memory monitoring enabled`);
 } catch (err) {
   console.error('Error starting server:', err);
   process.exit(1);
@@ -95,25 +95,25 @@ try {
 
 // Graceful shutdown
 process.on('SIGINT', async () => {
-  console.log('\n🛑 Shutting down server...');
+  console.log('\nShutting down server...');
   try {
     await server.close();
-    console.log('✅ Server closed gracefully');
+    console.log('Server closed gracefully');
     process.exit(0);
   } catch (err) {
-    console.error('❌ Error during shutdown:', err);
+    console.error('Error during shutdown:', err);
     process.exit(1);
   }
 });
 
 process.on('SIGTERM', async () => {
-   console.log('\n🛑 Received SIGTERM, shutting down...');
+   console.log('\nReceived SIGTERM, shutting down...');
    try {
      await server.close();
-     console.log('✅ Server closed gracefully');
+     console.log('Server closed gracefully');
      process.exit(0);
    } catch (err) {
-     console.error('❌ Error during shutdown:', err);
+     console.error('Error during shutdown:', err);
      process.exit(1);
    }
  });
@@ -121,6 +121,6 @@ process.on('SIGTERM', async () => {
 
 // Start the server
 startServer().catch((err) => {
-  console.error('❌ Failed to start server:', err);
+  console.error('Failed to start server:', err);
   process.exit(1);
 });
