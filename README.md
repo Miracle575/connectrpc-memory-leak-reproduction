@@ -1,207 +1,109 @@
-# Connect-RPC Node.js 内存泄漏复现项目
+# Connect-RPC Node.js Memory Leak Reproduction Project
 
-这个项目用于复现 Connect-RPC Node.js 客户端在处理服务器流式响应时的内存泄漏问题。
+This project is designed to reproduce memory leak issues in Connect-RPC Node.js clients when handling server streaming responses.
 
-## 问题描述
+## Problem Description
 
-**发现的问题**：客户端在接收服务器流式请求时，已经被客户端收到并处理后的数据没有被垃圾回收（GC），导致整个流的所有数据都会被保存在内存中，造成内存泄漏。
+**Issue Found**: When the client receives server streaming requests, data that has been received and processed by the client is not being garbage collected (GC), causing all stream data to remain in memory and resulting in memory leaks.
 
-## 项目结构
+## Project Structure
 
 ```
 d:\test\
 ├── build/
 │   └── storage/
-│       ├── file_pb.cjs          # Protobuf 生成的服务定义（CommonJS 格式）
-│       ├── file_pb.d.ts         # TypeScript 类型定义
-│       └── file_pb.d.ts.map     # 类型映射文件
-├── server.js               # Connect-RPC 服务器（用于复现）
-├── memory-leak-demo.js          # 客户端内存泄漏演示
-├── package.json                 # 项目依赖配置
-├── pnpm-lock.yaml              # 依赖锁定文件
-└── README.md                    # 项目说明文档
+│       ├── file_pb.cjs          # Protobuf generated service definitions (CommonJS format)
+│       ├── file_pb.d.ts         # TypeScript type definitions
+│       └── file_pb.d.ts.map     # Type mapping files
+├── server.js                    # Connect-RPC server (for reproduction)
+├── memory-leak-demo.js          # Client memory leak demonstration
+├── package.json                 # Project dependency configuration
+├── pnpm-lock.yaml              # Dependency lock file
+└── README.md                    # Project documentation
 ```
 
-## 环境要求
+## Environment Requirements
 
-- Node.js 22.14.0 （推荐）
-- pnpm（推荐）
+- Node.js 22.14.0 (recommended)
+- pnpm (recommended)
 
-## 安装依赖
+## Install Dependencies
 
 ```bash
-# 使用 pnpm（推荐）
+# Using pnpm (recommended)
 pnpm install
-
 ```
 
-## 启动项目
+## Starting the Project
 
-### 1. 启动服务器
+### 1. Start the Server
 
 ```bash
-# 启动 Connect-RPC 服务器
+# Start Connect-RPC server
 node server.js
 ```
 
-服务器将在以下地址启动：
-- **服务地址**：`https://0.0.0.0:9999`
-- **健康检查**：`https://0.0.0.0:9999/health`
+The server will start at the following addresses:
+- **Service Address**: `https://0.0.0.0:9999`
+- **Health Check**: `https://0.0.0.0:9999/health`
 
-### 2. 运行内存泄漏演示
+### 2. Run Memory Leak Demonstration
 
-在另一个终端窗口中运行客户端：
+Run the client in another terminal window:
 
 ```bash
-# 运行内存泄漏演示客户端
+# Run memory leak demonstration client
 node memory-leak-demo.js
 ```
 
-## 内存泄漏复现步骤
+## Memory Leak Reproduction Steps
 
-1. **启动服务器**：运行 `node server.js`
-2. **运行客户端**：运行 `node memory-leak-demo.js`
-3. **观察内存使用**：
-   - 客户端会会每 100 个 response 迭代显示一次内存使用情况
-   - 服务器会每 100 个块显示一次内存状态
-   - 注意观察客户端内存持续增长而不释放
+1. **Start Server**: Run `node server.js`
+2. **Run Client**: Run `node memory-leak-demo.js`
+3. **Observe Memory Usage**:
+   - Client displays memory usage every 100 response iterations
+   - Server shows memory status every 100 chunks
+   - Notice client memory continuously growing without release
 
-### 预期现象
+### Expected Behavior
 
-- **正常情况**：处理过的数据应该被 GC 回收，内存使用保持相对稳定
-- **问题现象**：客户端内存持续增长，已处理的流数据没有被释放
+- **Normal Case**: Processed data should be GC collected, memory usage remains relatively stable
+- **Problem Case**: Client memory continuously grows, processed stream data is not released
 
-## 技术细节
+## Technical Details
 
-### 服务器实现
-- 使用 `@connectrpc/connect-fastify` 插件
-- 实现 `FileService.CompressAndDownload` 流式 RPC
-- 生成大量数据块模拟大文件传输
-- 内置内存监控和健康检查
+### Server Implementation
+- Uses `@connectrpc/connect-fastify` plugin
+- Implements `FileService.CompressAndDownload` streaming RPC
+- Generates large amounts of data chunks to simulate large file transfers
+- Built-in memory monitoring and health checks
 
-### 客户端实现
-- 使用 `@connectrpc/connect-node` 客户端
-- 通过异步迭代器处理流式响应
-- 实时监控内存使用情况
-- 演示内存泄漏问题
+### Client Implementation
+- Uses `@connectrpc/connect-node` client
+- Processes streaming responses through async iterators
+- Real-time memory usage monitoring
+- Demonstrates memory leak issues
 
-## 配置选项
+## Configuration Options
 
-### 环境变量
+### Environment Variables
 
-- `PORT`：服务器端口（默认：9999）
-- `HOST`：服务器主机（默认：0.0.0.0）
-- `CHUNK_SIZE`：数据块大小（默认：3MB）
-- `MAX_CHUNKS`：最大块数量（默认：50000）
+- `PORT`: Server port (default: 9999)
+- `HOST`: Server host (default: 0.0.0.0)
+- `CHUNK_SIZE`: Data chunk size (default: 3MB)
+- `MAX_CHUNKS`: Maximum number of chunks (default: 50000)
 
-### 自定义配置
+### Custom Configuration
 
-可以修改以下文件中的参数：
+You can modify parameters in the following files:
 
-**server.js**：
+**server.js**:
 ```javascript
-const totalChunks = 50000; // 调整总块数
-const chunkSize = chunkSizeByte || 3 * 1024 * 1024; // 调整块大小
+const totalChunks = 50000; // Adjust total chunks
+const chunkSize = chunkSizeByte || 3 * 1024 * 1024; // Adjust chunk size
 ```
 
-**memory-leak-demo.js**：
+**memory-leak-demo.js**:
 ```javascript
-chunkSizeByte: 1024 * 1024, // 调整请求的块大小
+chunkSizeByte: 1024 * 1024, // Adjust requested chunk size
 ```
-
-
-
-```markdown
-# Connect-RPC Node.js 客户端流式响应内存泄漏
-
-## 问题描述
-客户端在接收服务器流式响应时，已处理的数据没有被垃圾回收，导致内存持续增长。
-
-## 环境信息
-- Node.js 版本：[版本号]
-- @connectrpc/connect 版本：[版本号]
-- @connectrpc/connect-node 版本：[版本号]
-- 操作系统：[系统信息]
-
-## 复现步骤
-1. 使用提供的复现项目：[项目链接]
-2. 启动服务器：`node server.js`
-3. 运行客户端：`node memory-leak-demo.js`
-4. 观察客户端内存持续增长
-
-## 预期行为
-已处理的流数据应该被 GC 回收，内存使用保持相对稳定。
-
-## 实际行为
-客户端内存持续增长，已处理的数据没有被释放。
-
-## 创建项目仓库步骤
-
-### 1. 在 GitHub 创建仓库
-
-1. 登录 GitHub
-2. 点击右上角 "+" → "New repository"
-3. 填写仓库信息：
-   - **Repository name**：`connectrpc-memory-leak-reproduction`
-   - **Description**：`Reproduction project for Connect-RPC Node.js client memory leak in server streaming`
-   - **Visibility**：Public（便于分享和报告问题）
-   - 勾选 "Add a README file"
-   - 选择 "Node" .gitignore 模板
-   - 选择 MIT License
-
-### 2. 初始化本地仓库
-
-```bash
-# 在项目目录中初始化 Git
-cd d:\test
-git init
-
-# 添加远程仓库
-git remote add origin https://github.com/[你的用户名]/connectrpc-memory-leak-reproduction.git
-
-# 创建 .gitignore 文件
-echo "node_modules/" > .gitignore
-echo ".env" >> .gitignore
-echo "*.log" >> .gitignore
-
-# 添加文件
-git add .
-git commit -m "Initial commit: Connect-RPC memory leak reproduction project"
-
-# 推送到 GitHub
-git branch -M main
-git push -u origin main
-```
-
-### 3. 完善仓库
-
-1. **添加标签**：在 GitHub 仓库页面添加相关标签
-   - `connectrpc`
-   - `nodejs`
-   - `memory-leak`
-   - `reproduction`
-   - `streaming`
-
-2. **创建 Issues 模板**：在 `.github/ISSUE_TEMPLATE/` 目录下创建模板
-
-3. **添加 GitHub Actions**：可选，用于自动化测试
-
-### 4. 分享和引用
-
-创建完成后，可以在以下场景中使用仓库链接：
-
-- 在 Connect-RPC 相关仓库中报告 Issue
-- 在社区论坛或讨论组中分享
-- 作为技术文档的参考案例
-
-## 许可证
-
-MIT License - 详见 LICENSE 文件
-
-## 贡献
-
-欢迎提交 Pull Request 来改进这个复现项目，或者报告新发现的问题。
-
-## 联系方式
-
-如有问题，请通过 GitHub Issues 联系。
