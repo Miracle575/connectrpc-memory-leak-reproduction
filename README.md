@@ -1,6 +1,6 @@
 # Connect-RPC Node.js Memory Leak Reproduction Project
 
-This project is designed to reproduce memory leak issues in Connect-RPC Node.js clients when handling server streaming responses.
+This project is designed to reproduce memory leak issues in ConnectRPC Node.js clients when handling server streaming responses.
 
 ## Problem Description
 
@@ -9,16 +9,16 @@ This project is designed to reproduce memory leak issues in Connect-RPC Node.js 
 ## Project Structure
 
 ```
-d:\test\
+connectrpc-memory-leak-reproduction/
 ├── build/
 │   └── storage/
 │       ├── file_pb.cjs          # Protobuf generated service definitions (CommonJS format)
 │       ├── file_pb.d.ts         # TypeScript type definitions
 │       └── file_pb.d.ts.map     # Type mapping files
-├── server.js                    # Connect-RPC server (for reproduction)
+├── server.js                    # ConnectRPC server (for reproduction)
 ├── memory-leak-demo.js          # Client memory leak demonstration
 ├── package.json                 # Project dependency configuration
-├── pnpm-lock.yaml              # Dependency lock file
+├── pnpm-lock.yaml               # Dependency lock file
 └── README.md                    # Project documentation
 ```
 
@@ -44,8 +44,8 @@ node server.js
 ```
 
 The server will start at the following addresses:
-- **Service Address**: `https://0.0.0.0:9999`
-- **Health Check**: `https://0.0.0.0:9999/health`
+- **Service Address**: `http://0.0.0.0:9999`
+- **Health Check**: `http://0.0.0.0:9999/health`
 
 ### 2. Run Memory Leak Demonstration
 
